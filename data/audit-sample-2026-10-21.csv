@@ -2,21 +2,21 @@ source_id,name,address,city,zip,municipality,directory_status,inspection_date,we
 1095980,ABROOKIN CAREER & TECH,1 ARBOR DRIVE,ALBANY,12207,ALBANY,likely closed,2025-01-16,,pending,,
 523339,AIDS COUNCIL OF N.E. NEW YORK,10  NORTH MAIN AVENUE,ALBANY,12203,ALBANY,likely closed,2005-11-02,https://www.allianceforpositivehealth.org/about/,confirmed,2026-10-21T17:38:36Z,"Successor organization's official site returned HTTP 200, identifies itself as formerly the AIDS Council, and lists current offices elsewhere; the old food operation at 10 North Main is no longer current."
 251456,ARBOR HILL SOUP KITCHEN,40 LARK STREET,ALBANY,12210,ALBANY,likely closed,1999-01-27,,pending,,
-531336,CATERER-CAMPUS CTR. KITCHEN,1400 WASHINGTON AVENUE,ALBANY,12222,ALBANY,likely closed,2005-11-18,,pending,,
+531336,CATERER-CAMPUS CTR. KITCHEN,1400 WASHINGTON AVENUE,ALBANY,12222,ALBANY,likely closed,2005-11-18,https://health.data.ny.gov/d/2hcc-shji,confirmed,2026-10-21T18:24:07Z,Official active NYSDOH history lists current named food operations at 1400 Washington Avenue but not Caterer-Campus Ctr. Kitchen; this corroborates that the old 2005 operation is inactive.
 1057740,COLLEGE OF ST ROSE CAMELOT ROOM,919 MADISON AVENUE,ALBANY,12203,ALBANY,likely closed,2024-04-30,,pending,,
 804925,DEMARCO'S RESTAURANT,1965 CENTRAL AVENUE,ALBANY,12205,COLONIE,likely closed,2017-09-18,https://health.data.ny.gov/d/2hcc-shji,confirmed,2026-10-21T18:15:03Z,Official active NYSDOH inspection history lists DeMarco's Restaurant at the exact name and address under current operation ID 1003869 with a 2025-11-24 inspection; the obsolete inactive ID was reconciled.
-510745,Frozen Dessert,475 WATERVLIET SHAKER ROAD,LATHAM,12110,COLONIE,likely closed,2005-05-24,,pending,,
+510745,Frozen Dessert,475 WATERVLIET SHAKER ROAD,LATHAM,12110,COLONIE,likely closed,2005-05-24,https://health.data.ny.gov/d/2hcc-shji,confirmed,2026-10-21T18:24:07Z,Official active NYSDOH history lists current Shaker Middle School food operations at 475 Watervliet Shaker Road but not this old generic Frozen Dessert operation; likely closed is supported.
 459224,FROZEN DESSERT,8 NEW SCOTLAND AVENUE,ALBANY,12208,ALBANY,likely closed,2004-02-25,,pending,,
-252495,FROZEN DESSERT-PIZZERIA UNO,601 TROY-SCHENECTADY ROAD,LATHAM,12110,COLONIE,likely closed,2015-05-15,,pending,,
+252495,FROZEN DESSERT-PIZZERIA UNO,601 TROY-SCHENECTADY ROAD,LATHAM,12110,COLONIE,likely closed,2015-05-15,https://health.data.ny.gov/d/2hcc-shji,confirmed,2026-10-21T18:24:07Z,"Official active NYSDOH history lists Panera Bread #741 at 601 Troy Schenectady Road with a 2026-06-02 inspection, while Frozen Dessert-Pizzeria Uno remains inactive; likely closed is supported."
 986371,GOOD N' BAKED BAKERY,457 - ROUTE 146,GUILDERLAND CENTER,12085,GUILDERLAND,likely closed,2019-03-26,,pending,,
 899146,GREEN TECH HIGH SCHOOL SUMMER FEEDING,99 SLINGERLAND STREET,ALBANY,12202,ALBANY,likely closed,2019-07-25,,pending,,
-952336,GRILL MASTER,216 LARK STREET,ALBANY,12210,ALBANY,likely closed,2018-02-12,,pending,,
+952336,GRILL MASTER,216 LARK STREET,ALBANY,12210,ALBANY,likely closed,2018-02-12,https://health.data.ny.gov/d/2hcc-shji,confirmed,2026-10-21T18:24:07Z,"Official active NYSDOH history lists La Polleria at 216 Lark Street with a 2026-06-11 inspection, while Grill Master remains inactive; likely closed is supported."
 252098,HILLTOWNS PIZZA CO.,102 PROSPECT TERRACE,GUILDERLAND,12084,GUILDERLAND,likely closed,2001-01-18,,pending,,
-673465,KINDERED SPIRITS UNITED,553 CLINTON AVENUE,ALBANY,12206,ALBANY,likely closed,2009-10-09,,pending,,
+673465,KINDERED SPIRITS UNITED,553 CLINTON AVENUE,ALBANY,12206,ALBANY,likely closed,2009-10-09,https://health.data.ny.gov/d/2hcc-shji,confirmed,2026-10-21T18:24:07Z,"Official active NYSDOH history lists Beverwyck Cheesecake Company at 553 Clinton Avenue with a 2025-10-03 inspection, while Kindered Spirits United remains inactive; likely closed is supported."
 720874,MYERS MIDDLE SCHOOL CAFETERIA,100 ELBEL COURT,ALBANY,12209,ALBANY,likely closed,2022-03-18,https://health.data.ny.gov/d/2hcc-shji,confirmed,2026-10-21T18:15:03Z,Official active NYSDOH inspection history lists Myers Middle School at the same 100 Elbel Court facility under current operation ID 1095936 with a 2026-09-18 inspection; the cafeteria's obsolete ID was manually reconciled with a recorded reason.
 453806,STONE CROW,492 YATES STREET,ALBANY,12208,ALBANY,likely closed,2012-11-07,,pending,,
 782316,SUBS & GRUBS,117-A SOUTH PEARL  STREET,ALBANY,12207,ALBANY,likely closed,2012-10-05,,pending,,
-797781,T C B Y @ NEWTON PLAZA,594 LOUDON  ROAD,LATHAM,12110,COLONIE,likely closed,2019-01-09,,pending,,
+797781,T C B Y @ NEWTON PLAZA,594 LOUDON  ROAD,LATHAM,12110,COLONIE,likely closed,2019-01-09,https://health.data.ny.gov/d/2hcc-shji,confirmed,2026-10-21T18:24:07Z,"Official active NYSDOH history lists Midpoint Wine Bar & Restaurant at 594 Loudon Road with a 2026-01-14 inspection, while T C B Y at Newton Plaza remains inactive; likely closed is supported."
 696882,THE DOWNBEAT JAZZ CAFE,137 MADISON AVENUE,ALBANY,122021707,ALBANY,likely closed,2009-12-18,,pending,,
 947773,WILSON'S XPRESS STOP,330 OLD NISKAYUNA ROAD,LATHAM,12110,COLONIE,likely closed,2016-11-03,,pending,,
 254644,BLESSED VIRGIN MARY OF CZESTOCHOWA,250 MAXWELL ROAD,LATHAM,12110,COLONIE,open,2025-12-23,,pending,,
