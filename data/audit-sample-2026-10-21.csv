@@ -41,11 +41,11 @@ source_id,name,address,city,zip,municipality,directory_status,inspection_date,we
 677140,"MADISON'S PIZZA, SUB & WINGS",846 MADISON AVENUE,ALBANY,12208,ALBANY,open,2026-07-01,https://madisonspizza.com/about-us/,confirmed,2026-10-21T17:20:15Z,Business-owned site returned HTTP 200 and lists 846 Madison Avenue.
 661686,MARISA'S PLACE,5 NEW KARNER ROAD,GUILDERLAND,12084,GUILDERLAND,open,2026-04-01,https://www.marisasplacepizza.com/,confirmed,2026-10-21T17:20:15Z,Business-owned site returned HTTP 200; name and 5 New Karner Road location match.
 809752,METROPOLITAN NEW TESTAMENT BAPTIST,200 SOUTH PEARL  STREET,ALBANY,12202,ALBANY,open,2026-07-29,,pending,,
-1101616,ON TAP at HOLIDAY INN EXPRESS HOTEL,400 OLD LOUDON ROAD,LATHAM,12110,COLONIE,open,2026-06-15,,pending,,
+1101616,ON TAP at HOLIDAY INN EXPRESS HOTEL,400 OLD LOUDON ROAD,LATHAM,12110,COLONIE,open,2026-06-15,https://www.ihg.com/holidayinnexpress/hotels/us/en/latham/alban/hoteldetail,confirmed,2026-10-21T17:21:57Z,Official IHG property page lists 400 Old Loudon Road and complimentary hot breakfast; browser check confirmed the current property and food service.
 251299,PALACE THEATRE,19 CLINTON AVENUE,ALBANY,12207,ALBANY,open,2026-07-01,https://www.palacealbany.org/about/contact-us,confirmed,2026-10-21T17:20:15Z,Official venue site returned HTTP 200 and lists 19 Clinton Avenue.
 251974,S.W. PITTS HOSE CO. OF LATHAM,226 OLD LOUDON ROAD,LATHAM,12110,COLONIE,open,2026-03-06,,pending,,
 251820,STARBUCKS COFFEE #7390,594 NEW LOUDON ROAD,LATHAM,12110,COLONIE,open,2026-01-14,,pending,,
 810046,SWEET BASIL THAI RESTAURANT,370 DELAWARE AVENUE,ALBANY,12209,ALBANY,open,2025-11-05,https://www.sweetbasilthaialbany1.com/,confirmed,2026-10-21T17:20:15Z,Business-owned site returned HTTP 200 and lists 370 Delaware Avenue.
 251430,THE DAILY GRIND CAFE',204 LARK STREET,ALBANY,12210,ALBANY,open,2026-05-04,https://order.dailygrind.com/,confirmed,2026-10-21T17:20:15Z,Business ordering site returned HTTP 200 with active ordering and lists 204 Lark Street.
-252293,WATERVLIET ELEMENTARY SCHOOL CAFETERIA,2557 TENTH AVENUE,WATERVLIET,12189,WATERVLIET,open,2026-09-24,,pending,,
+252293,WATERVLIET ELEMENTARY SCHOOL CAFETERIA,2557 TENTH AVENUE,WATERVLIET,12189,WATERVLIET,open,2026-09-24,https://www.watervlietcityschools.org/,confirmed,2026-10-21T17:21:57Z,Official district site returned HTTP 200; official district records identify the elementary school at 2557 10th Avenue and its cafeteria operation.
 251178,WESTLAND HILLS LITTLE LEAGUE CONCESSION,ZOAR AVENUE,ALBANY,12203,ALBANY,open,2026-04-15,,pending,,

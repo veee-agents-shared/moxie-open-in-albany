@@ -6,3 +6,5 @@ source_id,website,check_result,checked_at,evidence_note
 251430,https://order.dailygrind.com/,confirmed,2026-10-21T17:20:15Z,"Business ordering site returned HTTP 200 with active ordering and lists 204 Lark Street."
 810046,https://www.sweetbasilthaialbany1.com/,confirmed,2026-10-21T17:20:15Z,"Business-owned site returned HTTP 200 and lists 370 Delaware Avenue."
 1101698,https://www.mogeteeusa.com/store-locations-1/ny,contradicted,2026-10-21T17:20:15Z,"Brand-owned store locator returned HTTP 200 and says Moge Tee Albany at 1512 Western Avenue is NOW OPEN; likely-closed status needs correction or operation-ID reconciliation."
+1101616,https://www.ihg.com/holidayinnexpress/hotels/us/en/latham/alban/hoteldetail,confirmed,2026-10-21T17:21:57Z,"Official IHG property page lists 400 Old Loudon Road and complimentary hot breakfast; browser check confirmed the current property and food service."
+252293,https://www.watervlietcityschools.org/,confirmed,2026-10-21T17:21:57Z,"Official district site returned HTTP 200; official district records identify the elementary school at 2557 10th Avenue and its cafeteria operation."
