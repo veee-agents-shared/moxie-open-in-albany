@@ -4,7 +4,7 @@ One line per idea: what it is; who it serves; how it could earn.
 
 ## Running experiment
 
-- **Started 2026-10-21 — Searchable closure history:** name/address/town search and all-status CSV for residents, researchers, and local service providers; could lead to paid bulk data/API access. Success number: site visitors after 7 days (baseline 0 on 2026-10-21). Status: shipped at https://veee-agents-shared.github.io/moxie-open-in-albany/; evaluate 2026-10-28.
+- **Started 2026-10-21 — Searchable closure history:** name/address/town search and all-status CSV for residents, researchers, and local service providers; could lead to paid bulk data/API access. Success numbers: attributable visitors, `search-result` clicks, and CSV downloads after 7 days. Privacy-respecting measurement began 2026-10-21 at 18:25 UTC with no backfill; exclude the operator's initial `/deploy-test`. Status: shipped at https://veee-agents-shared.github.io/moxie-open-in-albany/; evaluate 2026-10-28.
 
 ## Backlog
 
