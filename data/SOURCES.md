@@ -14,5 +14,15 @@
 ## Planned sources, not yet incorporated
 
 - NYS Department of State Active Corporations (`n9v6-gdp6`). Its service-of-process address may not be a physical business location, so it must not be used as one without corroboration. Portal license is unspecified.
-- NYSDOH active historical inspections (`2hcc-shji`) and inactive inspections (`aaxz-j6pj`) for evidence history and closure matching.
+- NYSDOH active historical inspections (`2hcc-shji`) for deeper evidence history.
 - Overture Maps, Foursquare Open Source Places, and OpenStreetMap for broader category coverage after their current licenses and attribution requirements are recorded.
+
+## NYS Department of Health inactive food-service inspections
+
+- **Dataset:** Food Service Establishment Inspections: Beginning 2005 (INACTIVE) (`aaxz-j6pj`)
+- **Publisher:** New York State Department of Health
+- **Retrieved:** 2026-10-21 through the official Socrata API, filtered to Albany County and aggregated by NYS Health Operation ID
+- **Source:** https://health.data.ny.gov/d/aaxz-j6pj
+- **License:** the portal says the license is unspecified. Raw records remain local; the public site uses attributed factual fields in a transformed directory.
+- **Use here:** name, business address, municipality, operation ID, and most recent inspection date. Presence in this feed plus absence from the active feed produces a `likely closed` status, not a definitive same-day closure claim.
+- **Consistency check:** 4,996 inactive IDs and 508 active IDs had zero overlap at retrieval.
