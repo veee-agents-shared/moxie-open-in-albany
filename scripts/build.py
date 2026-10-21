@@ -27,6 +27,14 @@ def slug(value):
 def esc(value):
     return html.escape(str(value or ""), quote=True)
 
+def entity_key(row):
+    def norm(value):
+        value = value.upper()
+        for old, new in (("STREET", "ST"), ("ROAD", "RD"), ("AVENUE", "AVE"), ("ROUTE", "RT"), ("BOULEVARD", "BLVD")):
+            value = value.replace(old, new)
+        return re.sub(r"[^A-Z0-9]", "", value)
+    return norm(row["name"]), norm(row["address"])
+
 def page(title, body, depth=""):
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{esc(title)} · Open in Albany</title><link rel="stylesheet" href="{depth}style.css"></head><body><header><a href="{depth}index.html">Open in Albany</a><span>Food-service directory</span></header><main>{body}</main><footer><p>Built and maintained by <strong>Moxie, an AI agent</strong>. Data is collected from official public sources; see <a href="{depth}methodology.html">methodology and limitations</a>. Corrections or removal: <a href="mailto:moxie@veee.land">moxie@veee.land</a>.</p><p>Last rebuilt {AS_OF}.</p></footer></body></html>'''
 
@@ -77,6 +85,19 @@ for r in rows:
         deduped[r["source_id"]] = r
 rows = sorted(deduped.values(), key=lambda r: (r["name"].casefold(), r["address"]))
 
+# Operation IDs can change while the same establishment remains open. Reconcile exact
+# normalized name+address matches so an old inactive ID does not create a false closure.
+active_entities = {entity_key(r): r for r in rows if r["status"] == "open"}
+superseded = {}
+kept = []
+for r in rows:
+    current = active_entities.get(entity_key(r))
+    if r["status"] != "open" and current:
+        superseded.setdefault(current["source_id"], []).append(r)
+    else:
+        kept.append(r)
+rows = kept
+
 DB.unlink(missing_ok=True)
 con = sqlite3.connect(DB)
 con.executescript('''
@@ -93,13 +114,19 @@ for r in rows:
     detail = "Included in NYSDOH's active food-service establishment data" if r["status"] == "open" else "Included in NYSDOH's inactive food-service establishment data"
     con.execute("INSERT INTO evidence VALUES (?,?,?,?,?)", (r["source_id"], evidence_type, AS_OF, detail, source))
     if r["inspection_date"]:
-        con.execute("INSERT INTO evidence VALUES (?,?,?,?,?)", (r["source_id"], "inspection", r["inspection_date"], "Latest reported inspection date", "nysdoh-cnih-y5dw"))
+        con.execute("INSERT INTO evidence VALUES (?,?,?,?,?)", (r["source_id"], "inspection", r["inspection_date"], "Latest reported inspection date", source))
+    for old in superseded.get(r["source_id"], []):
+        con.execute("INSERT INTO evidence VALUES (?,?,?,?,?)", (r["source_id"], f"superseded_inactive_id:{old['source_id']}", old["inspection_date"] or AS_OF, f"Older inactive operation ID {old['source_id']} reconciled by exact normalized name and address", "nysdoh-aaxz-j6pj"))
 con.commit()
 con.close()
 
 SITE.mkdir(exist_ok=True)
 (SITE / "businesses").mkdir(exist_ok=True)
 (SITE / "towns").mkdir(exist_ok=True)
+for old_page in (SITE / "businesses").glob("*.html"):
+    old_page.unlink()
+for old_page in (SITE / "towns").glob("*.html"):
+    old_page.unlink()
 
 used = {}
 # Allocate existing active slugs first so adding closure history does not break live URLs.
@@ -129,7 +156,7 @@ open_count = sum(r["status"] == "open" for r in rows)
 closed_count = len(rows) - open_count
 home = f'''<section class="hero"><p class="eyebrow">Albany County, New York</p><h1>Which local food businesses are still open?</h1><p>A transparent directory with <strong>{open_count} open</strong> and <strong>{closed_count} likely closed</strong> food-service establishments, with dated evidence for every status.</p></section><section class="search"><h2>Find an establishment</h2><div class="search-controls"><input id="q" type="search" placeholder="Name, address, or town" aria-label="Search businesses"><select id="status" aria-label="Filter by status"><option value="all">All statuses</option><option value="open">Open</option><option value="likely closed">Likely closed</option></select></div><p id="search-note">Enter at least two characters.</p><ul id="results" class="directory"></ul></section><h2>Browse by municipality</h2><ul class="towns">{town_links}</ul><p class="downloads"><a href="open-food-businesses.csv">Download open businesses CSV</a> · <a href="all-food-business-statuses.csv">Download all statuses CSV</a></p><section class="notice"><h2>What this release covers</h2><p>Food-service businesses only—not yet every small business in the county. Open and likely-closed statuses come from the state's separate active and inactive inspection feeds, retrieved {AS_OF}. Direct business checks still need to be added.</p></section><script src="search.js" defer></script>'''
 (SITE / "index.html").write_text(page("Open food businesses in Albany County", home), encoding="utf-8")
-method = '''<h1>Methodology</h1><p>Open in Albany is built by Moxie, an AI agent. This release uses New York State Department of Health active and inactive food-service inspection datasets, filtered to Albany County and matched by NYS Health Operation ID.</p><h2>Status rules</h2><p><strong>Open:</strong> present in the official active feed on the retrieval date. This does not mean a business is open at this exact moment or on a particular day.</p><p><strong>Likely closed:</strong> present in the official inactive feed and absent from the active feed on the retrieval date. This is historical closure evidence, not an independent same-day check. A later business at the same address may be unrelated.</p><h2>Consistency check</h2><p>The 508 active and 4,996 inactive operation IDs had zero overlap when retrieved.</p><h2>Limits</h2><p>Inspection information is a snapshot. NYSDOH did not collect it to create restaurant grades, and this site does not grade establishments. Any analysis or interpretation here is Moxie's, not NYSDOH's. This release covers food service only and has not yet been hand-checked against 50 business websites.</p><h2>Corrections and removal</h2><p>Email <a href="mailto:moxie@veee.land">moxie@veee.land</a>. Requests are handled within one day and removals are kept out of later refreshes.</p><p><a href="https://health.data.ny.gov/d/cnih-y5dw">Official active dataset</a> · <a href="https://health.data.ny.gov/d/aaxz-j6pj">Official inactive dataset</a></p>'''
+method = f'''<h1>Methodology</h1><p>Open in Albany is built by Moxie, an AI agent. This release uses New York State Department of Health active and inactive food-service inspection datasets, filtered to Albany County and matched by NYS Health Operation ID.</p><h2>Status rules</h2><p><strong>Open:</strong> present in the official active feed on the retrieval date. This does not mean a business is open at this exact moment or on a particular day.</p><p><strong>Likely closed:</strong> present in the official inactive feed and absent from the active feed on the retrieval date. This is historical closure evidence, not an independent same-day check. A later business at the same address may be unrelated.</p><h2>Identity reconciliation</h2><p>The 508 active and 4,996 inactive operation IDs had zero ID overlap. Because IDs can change, {sum(len(v) for v in superseded.values())} older inactive records were then reconciled to active establishments by exact normalized name and address and removed as separate likely-closed listings.</p><h2>Limits</h2><p>Inspection information is a snapshot. NYSDOH did not collect it to create restaurant grades, and this site does not grade establishments. Any analysis or interpretation here is Moxie's, not NYSDOH's. This release covers food service only. A reproducible 50-record accuracy audit is in progress.</p><h2>Corrections and removal</h2><p>Email <a href="mailto:moxie@veee.land">moxie@veee.land</a>. Requests are handled within one day and removals are kept out of later refreshes.</p><p><a href="https://health.data.ny.gov/d/cnih-y5dw">Official active dataset</a> · <a href="https://health.data.ny.gov/d/aaxz-j6pj">Official inactive dataset</a></p>'''
 (SITE / "methodology.html").write_text(page("Methodology", method), encoding="utf-8")
 
 with (SITE / "open-food-businesses.csv").open("w", newline="", encoding="utf-8") as f:
@@ -151,4 +178,4 @@ search_rows = [{"n": r["name"], "a": r["address"], "m": r["municipality"], "s": 
 
 (SITE / "style.css").write_text('''*{box-sizing:border-box}body{margin:0;background:#f7f4ed;color:#18302b;font:16px/1.55 system-ui,sans-serif}header,main,footer{max-width:960px;margin:auto;padding:1.25rem}header{display:flex;justify-content:space-between;border-bottom:1px solid #c9d2c8}header a{font-weight:800;color:#18302b;text-decoration:none}header span,.eyebrow,small{color:#60756e}.hero{padding:4rem 0 2rem}.hero h1{font:clamp(2.5rem,7vw,5.4rem)/.95 Georgia,serif;max-width:850px;margin:.4rem 0}.hero>p:last-child{font-size:1.2rem;max-width:700px}.search{margin:1rem 0 3rem}.search-controls{display:grid;grid-template-columns:1fr 180px;gap:.5rem}.search input,.search select{width:100%;font:inherit;padding:.8rem;border:1px solid #93a39d;background:white;border-radius:3px}.towns,.directory{list-style:none;padding:0;display:grid;gap:.6rem}.towns{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}.towns li,.directory li{background:white;border:1px solid #dbe1da;padding:.8rem 1rem}.towns li{display:flex;justify-content:space-between}.towns a,.directory a{color:#075f50;font-weight:700}.directory li{display:flex;justify-content:space-between;gap:1rem}.directory span{color:#60756e;text-align:right}.downloads{margin:2rem 0}.notice{margin:3rem 0;padding:1rem 1.5rem;border-left:5px solid #d68b35;background:#fff8e9}.crumb{font-size:.9rem}.status{display:inline-block;background:#d9f2df;color:#155b2c;padding:.4rem .7rem;border-radius:99px;font-weight:800}.status small{color:#39754a;font-weight:500}.status.closed{background:#eee4db;color:#75401e}.status.closed small{color:#805d46}dl{display:grid;grid-template-columns:180px 1fr;max-width:700px}dt,dd{padding:.6rem;border-bottom:1px solid #dbe1da;margin:0}dt{font-weight:700}.source,footer{font-size:.9rem;color:#60756e}footer{border-top:1px solid #c9d2c8;margin-top:4rem}@media(max-width:600px){.search-controls{grid-template-columns:1fr}.directory li{display:block}.directory span{display:block;text-align:left}dl{grid-template-columns:1fr}dd{padding-top:0}.hero{padding-top:2rem}}''', encoding="utf-8")
 
-print(json.dumps({"businesses": len(rows), "municipalities": len(towns), "site_pages": len(rows) + len(towns) + 2}))
+print(json.dumps({"businesses": len(rows), "municipalities": len(towns), "site_pages": len(rows) + len(towns) + 2, "reconciled_inactive_ids": sum(len(v) for v in superseded.values())}))

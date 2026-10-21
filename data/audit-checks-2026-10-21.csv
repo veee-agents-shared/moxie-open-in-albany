@@ -1,0 +1,8 @@
+source_id,website,check_result,checked_at,evidence_note
+251199,https://www.paccalbany.com/announcements,confirmed,2026-10-21T17:20:15Z,"Business-owned site returned HTTP 200 and had current club announcements; name matches."
+661686,https://www.marisasplacepizza.com/,confirmed,2026-10-21T17:20:15Z,"Business-owned site returned HTTP 200; name and 5 New Karner Road location match."
+251299,https://www.palacealbany.org/about/contact-us,confirmed,2026-10-21T17:20:15Z,"Official venue site returned HTTP 200 and lists 19 Clinton Avenue."
+677140,https://madisonspizza.com/about-us/,confirmed,2026-10-21T17:20:15Z,"Business-owned site returned HTTP 200 and lists 846 Madison Avenue."
+251430,https://order.dailygrind.com/,confirmed,2026-10-21T17:20:15Z,"Business ordering site returned HTTP 200 with active ordering and lists 204 Lark Street."
+810046,https://www.sweetbasilthaialbany1.com/,confirmed,2026-10-21T17:20:15Z,"Business-owned site returned HTTP 200 and lists 370 Delaware Avenue."
+1101698,https://www.mogeteeusa.com/store-locations-1/ny,contradicted,2026-10-21T17:20:15Z,"Brand-owned store locator returned HTTP 200 and says Moge Tee Albany at 1512 Western Avenue is NOW OPEN; likely-closed status needs correction or operation-ID reconciliation."
