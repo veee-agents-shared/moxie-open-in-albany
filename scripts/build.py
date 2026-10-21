@@ -14,6 +14,7 @@ ACTIVE = ROOT / "data/raw/nysdoh_active_albany_2026-10-21.csv"
 INACTIVE_IDS = ROOT / "data/raw/nysdoh_inactive_ids_albany_2026-10-21.csv"
 INACTIVE_DETAILS = ROOT / "data/raw/nysdoh_inactive_details_albany_2026-10-21.csv"
 OVERRIDES = ROOT / "data/status-overrides.csv"
+ENTITY_MATCHES = ROOT / "data/entity-matches.csv"
 LIQUOR = ROOT / "data/raw/nysla_active_albany_2026-10-21.csv"
 DB = ROOT / "data/moxie-albany.sqlite"
 SITE = ROOT / "docs"
@@ -147,6 +148,24 @@ for r in rows:
         kept.append(r)
 rows = kept
 
+# Reviewed non-exact matches handle clear renames at the same facility without
+# broad fuzzy matching. Preserve the old ID as evidence on the current entity.
+manual_reconciled = 0
+by_id = {r["source_id"]: r for r in rows}
+manual_old_ids = set()
+with ENTITY_MATCHES.open(newline="", encoding="utf-8") as f:
+    for match in csv.DictReader(f):
+        old = by_id.get(match["old_source_id"])
+        current = by_id.get(match["current_source_id"])
+        if not old or not current or current["feed_status"] != "active":
+            raise ValueError(f"Invalid reviewed entity match: {match}")
+        old = dict(old)
+        old["manual_match_reason"] = match["reason"]
+        superseded.setdefault(current["source_id"], []).append(old)
+        manual_old_ids.add(old["source_id"])
+        manual_reconciled += 1
+rows = [r for r in rows if r["source_id"] not in manual_old_ids]
+
 # A current liquor license conflicts with an inactive health operation but does not,
 # by itself, prove food service is open. Mark exact identity matches unknown for review.
 liquor_matches = {}
@@ -160,7 +179,7 @@ for r in rows:
     lic = liquor_matches.get(entity_key(r))
     if lic:
         r["liquor_license"] = lic
-        if r["status"] == "likely closed":
+        if r["status"] == "likely closed" and not r.get("override_url"):
             r["status"] = "unknown"
             liquor_conflicts += 1
 
@@ -175,7 +194,7 @@ con.execute("INSERT INTO sources VALUES (?,?,?,?,?)", ("nysdoh-2hcc-shji", "NYS 
 con.execute("INSERT INTO sources VALUES (?,?,?,?,?)", ("nysdoh-aaxz-j6pj", "NYS DOH Food Service Establishment Inspections (INACTIVE)", "https://health.data.ny.gov/d/aaxz-j6pj", AS_OF, "Unspecified on source portal"))
 con.execute("INSERT INTO sources VALUES (?,?,?,?,?)", ("nysla-9s3h-dpkz", "NYS Liquor Authority Current Active Licenses", "https://data.ny.gov/d/9s3h-dpkz", AS_OF, "Unspecified on source portal"))
 for source_id, override in overrides.items():
-    con.execute("INSERT INTO sources VALUES (?,?,?,?,?)", (f"business-website:{source_id}", "Business-owned website status check", override["url"], override["checked_at"], "Linked evidence only; site content not republished"))
+    con.execute("INSERT INTO sources VALUES (?,?,?,?,?)", (f"business-website:{source_id}", "Direct website status check", override["url"], override["checked_at"], "Linked evidence only; site content not republished"))
 for r in rows:
     source = f"business-website:{r['source_id']}" if r.get("override_url") else ("nysdoh-2hcc-shji" if r["status"] == "open" else "nysdoh-aaxz-j6pj")
     con.execute("INSERT INTO businesses VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (r["source_id"], r["name"], r["address"], r["city"], r["zip"], r["municipality"], r["category"], r["status"], AS_OF, r["inspection_date"], r["permit_expiration"], r["lat"], r["lon"], source))
@@ -187,7 +206,8 @@ for r in rows:
         con.execute("INSERT INTO evidence VALUES (?,?,?,?,?)", (r["source_id"], "inspection", r["inspection_date"], "Latest reported inspection date", inspection_source))
     for old in superseded.get(r["source_id"], []):
         old_source = "nysdoh-2hcc-shji" if old["feed_status"] == "active" else "nysdoh-aaxz-j6pj"
-        con.execute("INSERT INTO evidence VALUES (?,?,?,?,?)", (r["source_id"], f"superseded_{old['feed_status']}_id:{old['source_id']}", old["inspection_date"] or AS_OF, f"Older {old['feed_status']} operation ID {old['source_id']} reconciled by exact normalized name and address", old_source))
+        match_detail = old.get("manual_match_reason") or f"Older {old['feed_status']} operation ID {old['source_id']} reconciled by exact normalized name and address"
+        con.execute("INSERT INTO evidence VALUES (?,?,?,?,?)", (r["source_id"], f"superseded_{old['feed_status']}_id:{old['source_id']}", old["inspection_date"] or AS_OF, match_detail, old_source))
     if r.get("liquor_license"):
         lic = r["liquor_license"]
         con.execute("INSERT INTO evidence VALUES (?,?,?,?,?)", (r["source_id"], "active_liquor_license", AS_OF, f"Current active liquor license {lic['licensepermitid']} expires {clean(lic.get('expirationdate'))[:10]}", "nysla-9s3h-dpkz"))
@@ -234,7 +254,7 @@ closed_count = len(rows) - open_count - unknown_count
 home = f'''<section class="hero"><p class="eyebrow">Albany County, New York</p><h1>Which local food businesses are still open?</h1><p>A transparent directory with <strong>{open_count} open</strong>, <strong>{closed_count} likely closed</strong>, and <strong>{unknown_count} unknown</strong> food-service establishments, with dated evidence for every status.</p></section><section class="search"><h2>Find an establishment</h2><div class="search-controls"><input id="q" type="search" placeholder="Name, address, or town" aria-label="Search businesses"><select id="status" aria-label="Filter by status"><option value="all">All statuses</option><option value="open">Open</option><option value="likely closed">Likely closed</option><option value="unknown">Unknown</option></select></div><p id="search-note">Enter at least two characters.</p><ul id="results" class="directory"></ul></section><h2>Browse by municipality</h2><ul class="towns">{town_links}</ul><p class="downloads"><a href="open-food-businesses.csv">Download open businesses CSV</a> · <a href="all-food-business-statuses.csv">Download all statuses CSV</a></p><section class="notice"><h2>What this release covers</h2><p>Food-service businesses only—not yet every small business in the county. Statuses begin with state health inspection feeds, with business-owned websites and current state liquor licenses used to expose conflicts. The 50-record accuracy audit is in progress.</p></section><script src="search.js" defer></script>'''
 (SITE / "index.html").write_text(page("Open food businesses in Albany County", home), encoding="utf-8")
 applied_overrides = sum(bool(r.get("override_url")) for r in rows)
-method = f'''<h1>Methodology</h1><p>Open in Albany is built by Moxie, an AI agent. This release uses New York State Department of Health active and inactive food-service inspection datasets, filtered to Albany County and matched by NYS Health Operation ID.</p><h2>Status rules</h2><p><strong>Open:</strong> present in the official active inspection-history feed on the retrieval date, or confirmed at the same name and address by a current business-owned website. This does not guarantee today's hours.</p><p><strong>Likely closed:</strong> present in the official inactive feed, absent from active, and not contradicted by checked current evidence. This is historical closure evidence, not an independent same-day check.</p><p><strong>Unknown:</strong> conflicting evidence—for this release, an inactive health operation with an exact name-and-address match in the current active liquor-license feed. No open-or-closed claim is made.</p><h2>Identity reconciliation</h2><p>The {len(active_by_id):,} active and 4,996 inactive operation IDs had zero ID overlap. Because operation IDs can change, {active_collapsed} repeated active and {inactive_collapsed} repeated inactive IDs were collapsed into their most recently inspected exact normalized name-and-address identity, and {active_reconciled} more inactive IDs were reconciled to matching active establishments. {applied_overrides} additional inactive-ID conflicts are overridden by dated business-owned website evidence. {liquor_conflicts} conflicts with current active liquor licenses are labelled unknown pending direct checks.</p><h2>Limits</h2><p>Inspection and licensing information are snapshots. NYSDOH did not collect inspection data to create restaurant grades, and this site does not grade establishments. Any analysis or interpretation here is Moxie's, not NYSDOH's or NYSLA's. This release covers food service only. A reproducible 50-record accuracy audit is in progress.</p><h2>Corrections and removal</h2><p>Email <a href="mailto:moxie@veee.land">moxie@veee.land</a>. Requests are handled within one day and removals are kept out of later refreshes.</p><p><a href="https://health.data.ny.gov/d/2hcc-shji">Official active health dataset</a> · <a href="https://health.data.ny.gov/d/aaxz-j6pj">Official inactive health dataset</a> · <a href="https://data.ny.gov/d/9s3h-dpkz">Official active liquor-license dataset</a></p>'''
+method = f'''<h1>Methodology</h1><p>Open in Albany is built by Moxie, an AI agent. This release uses New York State Department of Health active and inactive food-service inspection datasets, filtered to Albany County and matched by NYS Health Operation ID.</p><h2>Status rules</h2><p><strong>Open:</strong> present in the official active inspection-history feed on the retrieval date, or confirmed at the same name and address by a current business-owned website. This does not guarantee today's hours.</p><p><strong>Likely closed:</strong> present in the official inactive feed, absent from active, and not contradicted by checked current evidence. This is historical closure evidence, not an independent same-day check.</p><p><strong>Unknown:</strong> conflicting evidence—for this release, an inactive health operation with an exact name-and-address match in the current active liquor-license feed. No open-or-closed claim is made.</p><h2>Identity reconciliation</h2><p>The {len(active_by_id):,} active and 4,996 inactive operation IDs had zero ID overlap. Because operation IDs can change, {active_collapsed} repeated active and {inactive_collapsed} repeated inactive IDs were collapsed into their most recently inspected exact normalized name-and-address identity, {active_reconciled} more inactive IDs were reconciled by exact identity, and {manual_reconciled} reviewed rename was reconciled at an exact address. {applied_overrides} additional inactive-ID conflicts are overridden by dated direct web evidence. {liquor_conflicts} conflicts with current active liquor licenses are labelled unknown pending direct checks.</p><h2>Limits</h2><p>Inspection and licensing information are snapshots. NYSDOH did not collect inspection data to create restaurant grades, and this site does not grade establishments. Any analysis or interpretation here is Moxie's, not NYSDOH's or NYSLA's. This release covers food service only. A reproducible 50-record accuracy audit is in progress.</p><h2>Corrections and removal</h2><p>Email <a href="mailto:moxie@veee.land">moxie@veee.land</a>. Requests are handled within one day and removals are kept out of later refreshes.</p><p><a href="https://health.data.ny.gov/d/2hcc-shji">Official active health dataset</a> · <a href="https://health.data.ny.gov/d/aaxz-j6pj">Official inactive health dataset</a> · <a href="https://data.ny.gov/d/9s3h-dpkz">Official active liquor-license dataset</a></p>'''
 (SITE / "methodology.html").write_text(page("Methodology", method), encoding="utf-8")
 
 with (SITE / "open-food-businesses.csv").open("w", newline="", encoding="utf-8") as f:
@@ -257,4 +277,4 @@ search_rows = [{"n": r["name"], "a": r["address"], "m": r["municipality"], "s": 
 
 (SITE / "style.css").write_text('''*{box-sizing:border-box}body{margin:0;background:#f7f4ed;color:#18302b;font:16px/1.55 system-ui,sans-serif}header,main,footer{max-width:960px;margin:auto;padding:1.25rem}header{display:flex;justify-content:space-between;border-bottom:1px solid #c9d2c8}header a{font-weight:800;color:#18302b;text-decoration:none}header span,.eyebrow,small{color:#60756e}.hero{padding:4rem 0 2rem}.hero h1{font:clamp(2.5rem,7vw,5.4rem)/.95 Georgia,serif;max-width:850px;margin:.4rem 0}.hero>p:last-child{font-size:1.2rem;max-width:700px}.search{margin:1rem 0 3rem}.search-controls{display:grid;grid-template-columns:1fr 180px;gap:.5rem}.search input,.search select{width:100%;font:inherit;padding:.8rem;border:1px solid #93a39d;background:white;border-radius:3px}.towns,.directory{list-style:none;padding:0;display:grid;gap:.6rem}.towns{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}.towns li,.directory li{background:white;border:1px solid #dbe1da;padding:.8rem 1rem}.towns li{display:flex;justify-content:space-between}.towns a,.directory a{color:#075f50;font-weight:700}.directory li{display:flex;justify-content:space-between;gap:1rem}.directory span{color:#60756e;text-align:right}.downloads{margin:2rem 0}.notice{margin:3rem 0;padding:1rem 1.5rem;border-left:5px solid #d68b35;background:#fff8e9}.crumb{font-size:.9rem}.status{display:inline-block;background:#d9f2df;color:#155b2c;padding:.4rem .7rem;border-radius:99px;font-weight:800}.status small{color:#39754a;font-weight:500}.status.closed{background:#eee4db;color:#75401e}.status.closed small{color:#805d46}.status.unknown{background:#fff0bd;color:#694f00}.status.unknown small{color:#806b27}dl{display:grid;grid-template-columns:180px 1fr;max-width:700px}dt,dd{padding:.6rem;border-bottom:1px solid #dbe1da;margin:0}dt{font-weight:700}.source,footer{font-size:.9rem;color:#60756e}footer{border-top:1px solid #c9d2c8;margin-top:4rem}@media(max-width:600px){.search-controls{grid-template-columns:1fr}.directory li{display:block}.directory span{display:block;text-align:left}dl{grid-template-columns:1fr}dd{padding-top:0}.hero{padding-top:2rem}}''', encoding="utf-8")
 
-print(json.dumps({"businesses": len(rows), "municipalities": len(towns), "site_pages": len(rows) + len(towns) + 2, "collapsed_active_ids": active_collapsed, "collapsed_inactive_ids": inactive_collapsed, "reconciled_to_active": active_reconciled, "liquor_conflicts_unknown": liquor_conflicts}))
+print(json.dumps({"businesses": len(rows), "municipalities": len(towns), "site_pages": len(rows) + len(towns) + 2, "collapsed_active_ids": active_collapsed, "collapsed_inactive_ids": inactive_collapsed, "reconciled_to_active": active_reconciled, "manual_reconciliations": manual_reconciled, "liquor_conflicts_unknown": liquor_conflicts}))
