@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create a deterministic, balanced status-audit sample."""
+"""Create a deterministic, stratified status-audit sample."""
 import csv
 import hashlib
 import sqlite3
@@ -16,10 +16,10 @@ rows = [dict(r) for r in con.execute("SELECT source_id,name,address,city,zip,mun
 con.close()
 
 sample = []
-for status in ("open", "likely closed"):
+for status, size in (("open", 20), ("likely closed", 20), ("unknown", 10)):
     group = [r for r in rows if r["status"] == status]
     group.sort(key=lambda r: hashlib.sha256(f"{SEED}:{r['source_id']}".encode()).hexdigest())
-    sample.extend(group[:25])
+    sample.extend(group[:size])
 
 sample.sort(key=lambda r: (r["status"], r["name"].casefold()))
 with OUT.open("w", newline="", encoding="utf-8") as f:

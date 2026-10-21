@@ -26,3 +26,13 @@
 - **License:** the portal says the license is unspecified. Raw records remain local; the public site uses attributed factual fields in a transformed directory.
 - **Use here:** name, business address, municipality, operation ID, and most recent inspection date. Presence in this feed plus absence from the active feed produces a `likely closed` status, not a definitive same-day closure claim.
 - **Consistency check:** 4,996 inactive IDs and 508 active IDs had zero overlap at retrieval.
+
+## NYS Liquor Authority current active licenses
+
+- **Dataset:** Current Liquor Authority Active Licenses (`9s3h-dpkz`)
+- **Publisher:** New York State Liquor Authority / Alcoholic Beverage Control
+- **Retrieved:** 2026-10-21 through the official Socrata API, filtered to Albany County (894 license rows)
+- **Source:** https://data.ny.gov/d/9s3h-dpkz
+- **Update cadence:** daily
+- **License:** the portal says the license is unspecified. Raw records remain local; the public site uses attributed factual evidence and links to the source.
+- **Use here:** exact normalized name-and-address matches. When an active liquor license conflicts with an inactive health operation, status becomes `unknown`; a liquor license alone does not prove the food operation is open.
